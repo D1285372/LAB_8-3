@@ -1,0 +1,47 @@
+name: TicTacToe JUnit Tests
+
+# 觸發條件：當程式碼被推送到 main 分支，或有 PR 指向 main 分支時
+on:
+  push:
+    branches: [ main ]  # 
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 工作名稱
+  test:
+    # 執行環境：使用最新的 Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步驟 1: 將 GitHub 倉庫的程式碼 checkout 到虛擬機中
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 步驟 2: 設定 Java 環境 (JDK 17)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # 步驟 3: 下載 JUnit 並執行測試
+      - name: Download JUnit and Run Tests
+        run: |
+          # 建立一個 libs 目錄來存放 JUnit
+          mkdir -p libs
+          
+          # 下載 JUnit 5 Console Standalone (一個包含所有必需品的 JAR 檔)
+          curl -L -o libs/junit-platform-console-standalone.jar \
+            https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.2/junit-platform-console-standalone-1.10.2.jar
+
+          # 編譯所有 .java 檔案 (包含 TicTacToe.java 和 TicTacToeTest.java)
+          # -cp 參數告訴編譯器在哪裡找到 JUnit 的類別
+          javac -cp "libs/junit-platform-console-standalone.jar:." *.java
+
+          # 執行測試
+          # -jar 執行 JUnit Console
+          # -cp 告訴 JUnit 在哪裡找到我們的 .class 檔案 (用 . ) 和它自己的 .jar 檔案
+          # --scan-classpath 會自動掃描 classpath (即 .) 來找到所有名稱結尾為 Test 的測試類別
+          java -jar libs/junit-platform-console-standalone.jar \
+            -cp "libs/junit-platform-console-standalone.jar:." --scan-classpath
